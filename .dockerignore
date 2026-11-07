@@ -1,0 +1,8 @@
+build/
+nbproject/
+src/
+web/
+test/
+.git/
+*.iml
+*.log

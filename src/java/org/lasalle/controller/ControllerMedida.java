@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
@@ -64,6 +65,10 @@ public class ControllerMedida {
         ConnectionMysql connMysql = new ConnectionMysql();
         Connection conn = connMysql.open();
         try (PreparedStatement pstm = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            // TiDB no aplica las llaves foraneas por defecto, por eso se valida aqui.
+            if (!existeUsuario(conn, medida.getIdUsuario())) {
+                throw new SQLIntegrityConstraintViolationException("El usuario indicado no existe");
+            }
             pstm.setInt(1, medida.getIdUsuario());
             pstm.setInt(2, medida.getGlucosa());
             pstm.setString(3, medida.getContexto());
@@ -85,6 +90,16 @@ public class ControllerMedida {
             }
         }
         return medida;
+    }
+
+    private boolean existeUsuario(Connection conn, int idUsuario) throws SQLException {
+        String sql = "SELECT 1 FROM usuario WHERE idUsuario = ?";
+        try (PreparedStatement pstm = conn.prepareStatement(sql)) {
+            pstm.setInt(1, idUsuario);
+            try (ResultSet rs = pstm.executeQuery()) {
+                return rs.next();
+            }
+        }
     }
 
     private Medida getMedidaById(int idMedida) throws SQLException {

@@ -2,3 +2,6 @@ build/
 nbproject/private/
 *.class
 *.log
+
+# La carpeta dist/ SI se sube porque contiene el WAR que usa el Dockerfile.
+/dist/
